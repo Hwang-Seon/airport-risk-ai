@@ -25,7 +25,7 @@ def mock_llm(text):
     }
 
 # =========================
-# 3. 인코딩
+# 3. 인코딩 함수 정의
 # =========================
 def safe_transform(col, value):
     le = encoders[col]
@@ -35,7 +35,7 @@ def safe_transform(col, value):
         return 0  # unseen fallback
 
 # =========================
-# 4. 입력 UI
+# 4. 입력
 # =========================
 text = st.text_area(
     "사고 설명 입력 (※ 데모 버전으로, 예시 창에 입력된 값으로 실행하여 주십시오.)",
@@ -43,7 +43,7 @@ text = st.text_area(
 )
 
 # =========================
-# 6. 실행 버튼
+# 6. 실행
 # =========================
 if st.button("분석 실행"):
 
@@ -59,7 +59,7 @@ if st.button("분석 실행"):
     st.table(llm_df)
 
     # -------------------------
-    # (2) feature engineering (핵심)
+    # (2) feature engineering
     # -------------------------
     features = {
         "category": llm_result["category"],
@@ -72,9 +72,9 @@ if st.button("분석 실행"):
     }
 
     # -------------------------
-    # (3) encoding (학습과 동일 순서 중요)
+    # (3) encoding 
     # -------------------------
-    '''
+    
     X = np.array([[
         safe_transform("category", features["category"]),
         safe_transform("equip_1", features["equip_1"]),
@@ -83,16 +83,6 @@ if st.button("분석 실행"):
         safe_transform("equip_2_cat", features["equip_2_cat"]),
         safe_transform("status", features["status"]),
         safe_transform("cause", features["cause"]),
-    ]])
-    '''
-    X = np.array([[
-    encoders["category"].transform([features["category"]])[0],
-    encoders["equip_1"].transform([features["equip_1"]])[0],
-    encoders["equip_2"].transform([features["equip_2"]])[0],
-    encoders["equip_1_cat"].transform([features["equip_1_cat"]])[0],
-    encoders["equip_2_cat"].transform([features["equip_2_cat"]])[0],
-    encoders["status"].transform([features["status"]])[0],
-    encoders["cause"].transform([features["cause"]])[0],
     ]])
     
     # -------------------------
@@ -108,7 +98,7 @@ if st.button("분석 실행"):
     }
 
     # -------------------------
-    # (5) 결과 출력
+    # (5) 위험도 분석 결과 출력
     # -------------------------
 
     
@@ -136,7 +126,41 @@ if st.button("분석 실행"):
     """)
 
     # -------------------------
-    # (6) 디버깅 정보 (중요)
+    # (6) 유사 사례 추출
+    # -------------------------
+
+    # 아래 데이터는 입력 예시 데이터를 실제 유사도 분류 프로그램에 적용시킨 결과를 가져온 것입니다. 
+    def mock_similar_cases():
+        return pd.DataFrame([
+            {
+                "Final_Score": 0.8009,
+                "Cos_Sim_Score": 0.7009,
+                "Equip_Match": "YES",
+                "Previous_Accident": "램프버스가 후진 중 운전부주의로 차량 대기장소에서 급유를 위해 정차중이던 급유차량 추돌",
+                "Equip_Cats": "운송수송차량 / 조업특수장비",
+                "Severity": 3
+            },
+            {
+                "Final_Score": 0.7697,
+                "Cos_Sim_Score": 0.6697,
+                "Equip_Match": "YES",
+                "Previous_Accident": "승객을 수송중이던 램프버스가 교차로 운행 중 반대편 차량에 정차중인 차량 추돌",
+                "Equip_Cats": "운송수송차량 / 운송수송차량",
+                "Severity": 3
+            },
+            {
+                "Final_Score": 0.7657,
+                "Cos_Sim_Score": 0.6657,
+                "Equip_Match": "YES",
+                "Previous_Accident": "주행 중이던 램프버스와 화물 적재 후 조업도로에 진입 중이던 터그가 간 충돌",
+                "Equip_Cats": "운송수송차량 / 조업특수장비",
+                "Severity": 3
+            }
+        ])
+
+    
+    # -------------------------
+    # (7) 추가 정보
     # -------------------------
     st.write("---")
 
