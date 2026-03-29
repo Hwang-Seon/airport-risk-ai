@@ -143,13 +143,48 @@ if run:
         # -------------------------
         with col2:
             st.markdown("### 📈 위험도 클래스 확률 분포")
-    
+        
+            import altair as alt
+        
             chart_df = pd.DataFrame({
                 "위험도": ["낮은", "중간", "높은"],
                 "확률": proba
             })
-    
-            st.bar_chart(chart_df.set_index("위험도"))
+        
+            # 색상 설정
+            color_scale = alt.Scale(
+                domain=["낮은", "중간", "높은"],
+                range=["#4CAF50", "#FF9800", "#F44336"]
+            )
+        
+            # 가로형 바 차트
+            bars = (
+                alt.Chart(chart_df)
+                .mark_bar(size=35, cornerRadius=6)
+                .encode(
+                    y=alt.Y("위험도:N", sort=["낮은", "중간", "높은"], title=""),
+                    x=alt.X("확률:Q", title="확률", axis=alt.Axis(format="%")),
+                    color=alt.Color("위험도:N", scale=color_scale, legend=None)
+                )
+            )
+        
+            # 퍼센트 텍스트
+            text = (
+                alt.Chart(chart_df)
+                .mark_text(
+                    align="left",
+                    baseline="middle",
+                    dx=5,
+                    fontSize=14
+                )
+                .encode(
+                    y=alt.Y("위험도:N", sort=["낮은", "중간", "높은"]),
+                    x="확률:Q",
+                    text=alt.Text("확률:Q", format=".1%")
+                )
+            )
+        
+            st.altair_chart(bars + text, use_container_width=True)
     
         # -------------------------
         # (3) 하단: 상세 수치
@@ -161,7 +196,7 @@ if run:
             "확률": [f"{proba[0]:.2%}", f"{proba[1]:.2%}", f"{proba[2]:.2%}"]
         })
     
-        st.table(df, hide_index=True)
+        st.table(df)
     
         # -------------------------
         # (4) 설명
