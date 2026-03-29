@@ -147,38 +147,50 @@ if run:
             import altair as alt
         
             chart_df = pd.DataFrame({
-                "위험도": ["낮은", "중간", "높은"],
+                "위험도": ["낮은위험", "중간위험", "높은위험"],
                 "확률": proba
             })
         
-            # 색상 설정
+            # 색상
             color_scale = alt.Scale(
-                domain=["낮은", "중간", "높은"],
+                domain=["낮은위험", "중간위험", "높은위험"],
                 range=["#4CAF50", "#FF9800", "#F44336"]
             )
         
-            # 가로형 바 차트
+            # 막대
             bars = (
                 alt.Chart(chart_df)
-                .mark_bar(size=35, cornerRadius=6)
+                .mark_bar(size=25, cornerRadius=6)  # 👈 두께 줄여서 겹침 방지
                 .encode(
-                    y=alt.Y("위험도:N", sort=["낮은", "중간", "높은"], title=""),
-                    x=alt.X("확률:Q", title="확률", axis=alt.Axis(format="%")),
+                    y=alt.Y(
+                        "위험도:N",
+                        sort=["낮은위험", "중간위험", "높은위험"],
+                        title="",
+                        axis=alt.Axis(labelFontSize=14, labelFontWeight="bold")  # 👈 범주 강조
+                    ),
+                    x=alt.X(
+                        "확률:Q",
+                        title="확률",
+                        axis=alt.Axis(format="%")
+                    ),
                     color=alt.Color("위험도:N", scale=color_scale, legend=None)
                 )
+                .properties(height=200)  # 👈 전체 높이 늘려서 간격 확보
             )
         
-            # 퍼센트 텍스트
+            # 텍스트 (막대 안쪽)
             text = (
                 alt.Chart(chart_df)
                 .mark_text(
-                    align="left",
+                    align="right",
                     baseline="middle",
-                    dx=5,
-                    fontSize=14
+                    dx=-5,
+                    fontSize=14,
+                    fontWeight="bold",
+                    color="white"  # 👈 막대 안에서 잘 보이게
                 )
                 .encode(
-                    y=alt.Y("위험도:N", sort=["낮은", "중간", "높은"]),
+                    y=alt.Y("위험도:N", sort=["낮은위험", "중간위험", "높은위험"]),
                     x="확률:Q",
                     text=alt.Text("확률:Q", format=".1%")
                 )
@@ -186,20 +198,9 @@ if run:
         
             st.altair_chart(bars + text, use_container_width=True)
     
-        # -------------------------
-        # (3) 하단: 상세 수치
-        # -------------------------
-        st.markdown("### 📋 상세 확률")
-    
-        df = pd.DataFrame({
-            "위험도": ["🟢 낮은", "🟠 중간", "🔴 높은"],
-            "확률": [f"{proba[0]:.2%}", f"{proba[1]:.2%}", f"{proba[2]:.2%}"]
-        })
-    
-        st.table(df)
     
         # -------------------------
-        # (4) 설명
+        # (3) 설명
         # -------------------------
         with st.expander("ℹ️ 위험도 기준"):
             st.write("""
