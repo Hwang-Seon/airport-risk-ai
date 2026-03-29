@@ -182,12 +182,12 @@ if run:
             text = (
                 alt.Chart(chart_df)
                 .mark_text(
-                    align="right",
+                    align="left",
                     baseline="middle",
-                    dx=-5,
+                    dx=5,
                     fontSize=14,
                     fontWeight="bold",
-                    color="white"  # 👈 막대 안에서 잘 보이게
+                    color="black"  # 👈 막대 안에서 잘 보이게
                 )
                 .encode(
                     y=alt.Y("위험도:N", sort=["낮은위험", "중간위험", "높은위험"]),
