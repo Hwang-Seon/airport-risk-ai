@@ -27,6 +27,7 @@ def mock_llm(text):
 # =========================
 # 3. feature engineering (학습과 동일해야 함)
 # =========================
+'''
 def get_vehicle_cat(equip):
     mapping = {
         "버스": "운송수송차량",
@@ -37,7 +38,7 @@ def get_vehicle_cat(equip):
         "기타": "기타"
     }
     return mapping.get(equip, "기타")
-
+'''
 # =========================
 # 4. 안전 인코딩
 # =========================
@@ -77,8 +78,8 @@ if st.button("분석 실행"):
         "category": llm_result["category"],
         "equip_1": llm_result["equip_1"],
         "equip_2": llm_result["equip_2"],
-        "equip_1_cat": get_vehicle_cat(llm_result["equip_1"]),
-        "equip_2_cat": get_vehicle_cat(llm_result["equip_2"]),
+        "equip_1_cat": llm_result["equip_1"],
+        "equip_2_cat": llm_result["equip_2"],
         "status": llm_result["status"],
         "cause": llm_result["cause"]
     }
@@ -126,8 +127,8 @@ if st.button("분석 실행"):
     })
 
     st.info(
-        "낮은위험 : 단순 절차 위반, 단순 접촉, 장비 오작동 등"
-        "중간위험 : 장비 파손, 시설 파손, 경미한 인명 부상, 항공기 근접 사고 등"
+        "낮은위험 : 단순 절차 위반, 단순 접촉, 장비 오작동 등 "
+        "중간위험 : 장비 파손, 시설 파손, 경미한 인명 부상, 항공기 근접 사고 등 "
         "높은위험 : 인명 피해, 항공기 직접 피해 등")
 
     # -------------------------
