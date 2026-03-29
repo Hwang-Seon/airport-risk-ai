@@ -13,7 +13,7 @@ st.set_page_config(page_title="사고 위험도 분석", layout="centered")
 st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
 
 # =========================
-# 2. LLM (현재는 mock)
+# 2. LLM 분류 과정 (데모 버전으로, mock 입력)
 # =========================
 def mock_llm(text):
     return {
@@ -25,22 +25,7 @@ def mock_llm(text):
     }
 
 # =========================
-# 3. feature engineering (학습과 동일해야 함)
-# =========================
-'''
-def get_vehicle_cat(equip):
-    mapping = {
-        "버스": "운송수송차량",
-        "트럭": "운송수송차량",
-        "승용차": "운송수송차량",
-        "택시": "운송수송차량",
-        "지게차": "산업장비",
-        "기타": "기타"
-    }
-    return mapping.get(equip, "기타")
-'''
-# =========================
-# 4. 안전 인코딩
+# 3. 인코딩
 # =========================
 def safe_transform(col, value):
     le = encoders[col]
@@ -50,10 +35,11 @@ def safe_transform(col, value):
         return 0  # unseen fallback
 
 # =========================
-# 5. 입력 UI
+# 4. 입력 UI
 # =========================
 text = st.text_area(
     "사고 설명 입력",
+    "※ 데모 버전으로, 예시 창에 입력된 값으로 실행하여 주십시오.",
     value="폭설로 미끄러워진 GSE도로에서 램프버스가 정지하지 못하고 앞서가던 트럭을 추돌"
 )
 
@@ -69,7 +55,9 @@ if st.button("분석 실행"):
 
     st.subheader("🔎 LLM 기반 사고 유형 및 원인 분류 결과")
 
-    st.json(llm_result)
+    #st.json(llm_result)
+    llm_df = pd.DataFrame(list(llm_result.items()), columns=["항목", "값"])
+    st.table(llm_df)
 
     # -------------------------
     # (2) feature engineering (핵심)
