@@ -10,7 +10,7 @@ model = joblib.load("xgb_model.pkl")
 encoders = joblib.load("encoders.pkl")
 
 st.set_page_config(page_title="사고 위험도 분석", layout="centered")
-st.title("✈️ 사고 위험도 분석 시스템 (LLM + XGBoost)")
+st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
 
 # =========================
 # 2. LLM (현재는 mock)
@@ -53,7 +53,7 @@ def safe_transform(col, value):
 # =========================
 text = st.text_area(
     "사고 설명 입력",
-    value="폭설로 인해 버스가 미끄러져 트럭과 충돌함"
+    value="폭설로 미끄러워진 GSE도로에서 램프버스가 정지하지 못하고 앞서가던 트럭을 추돌"
 )
 
 # =========================
@@ -66,7 +66,7 @@ if st.button("분석 실행"):
     # -------------------------
     llm_result = mock_llm(text)
 
-    st.subheader("🧠 LLM 출력 (Structured)")
+    st.subheader("🔎 LLM 기반 사고 유형 및 원인 분류 결과")
 
     st.json(llm_result)
 
