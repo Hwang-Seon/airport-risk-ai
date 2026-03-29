@@ -14,14 +14,14 @@ encoders = joblib.load("encoders.pkl")
 # =========================
 # 2. Sidebar (입력 영역)
 # =========================
-st.sidebar.title("✈️ 사고 입력")
+st.title("✈️ 사고 입력")
 
-text = st.sidebar.text_area(
-    "사고 설명 입력",
+text = st.text_area(
+    "사고 설명 입력 (※ 데모 버전으로, 예시 창에 입력된 값으로 실행하여 주십시오.)",
     value="폭설로 미끄러워진 GSE도로에서 램프버스가 정지하지 못하고 앞서가던 트럭을 추돌"
 )
 
-run = st.sidebar.button("🚀 분석 실행")
+run = st.button("🚀 분석 실행")
 
 # =========================
 # 3. 함수
