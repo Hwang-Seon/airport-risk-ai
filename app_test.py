@@ -129,7 +129,14 @@ if run:
             else:
                 st.error(label_map[pred_class])
     
-            st.metric("Confidence", f"{np.max(proba):.2%}")
+            st.markdown(f"""
+            <div style="text-align:left;">
+                <div style="font-size:12px; color:gray;">Confidence</div>
+                <div style="font-size:16px; font-weight:bold;">
+                    {np.max(proba):.2%}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     
         # -------------------------
         # (2) 오른쪽: 확률 분포
@@ -154,7 +161,7 @@ if run:
             "확률": [f"{proba[0]:.2%}", f"{proba[1]:.2%}", f"{proba[2]:.2%}"]
         })
     
-        st.table(df)
+        st.table(df, hide_index=True)
     
         # -------------------------
         # (4) 설명
@@ -231,13 +238,3 @@ if run:
         # -------------------------
         st.dataframe(display_df, use_container_width=True, hide_index=True)
     
-
-    # -------------------------
-    # 설명
-    # -------------------------
-    with st.expander("ℹ️ 위험도 기준 설명"):
-        st.write("""
-        - 🟢 낮은위험: 단순 접촉, 경미 사고  
-        - 🟠 중간위험: 장비/시설 손상  
-        - 🔴 높은위험: 인명 피해 또는 항공기 손상  
-        """)
