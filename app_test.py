@@ -74,6 +74,7 @@ if st.button("분석 실행"):
     # -------------------------
     # (3) encoding (학습과 동일 순서 중요)
     # -------------------------
+    '''
     X = np.array([[
         safe_transform("category", features["category"]),
         safe_transform("equip_1", features["equip_1"]),
@@ -83,7 +84,17 @@ if st.button("분석 실행"):
         safe_transform("status", features["status"]),
         safe_transform("cause", features["cause"]),
     ]])
-
+    '''
+    X = np.array([[
+    encoders["category"].transform([features["category"]])[0],
+    encoders["equip_1"].transform([features["equip_1"]])[0],
+    encoders["equip_2"].transform([features["equip_2"]])[0],
+    encoders["equip_1_cat"].transform([features["equip_1_cat"]])[0],
+    encoders["equip_2_cat"].transform([features["equip_2_cat"]])[0],
+    encoders["status"].transform([features["status"]])[0],
+    encoders["cause"].transform([features["cause"]])[0],
+    ]])
+    
     # -------------------------
     # (4) prediction
     # -------------------------
