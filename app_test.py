@@ -201,35 +201,35 @@ if run:
 
 
     with tab2:
-    st.subheader("🔎 유사 사고 사례 보기")
-
-    # -------------------------
-    # (1) 데이터 불러오기
-    # -------------------------
-    similar_df = mock_similar_cases()
-
-    # -------------------------
-    # (2) 유사도 기준 정렬
-    # -------------------------
-    similar_df = similar_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
-
-    # -------------------------
-    # (3) 순위 컬럼 생성
-    # -------------------------
-    similar_df["유사도 순위"] = similar_df.index + 1
-
-    # -------------------------
-    # (4) 필요한 정보 추출
-    # -------------------------
-    display_df = similar_df[["유사도 순위", "Previous_Accident", "Equip_Cats"]].rename(columns={
-        "Previous_Accident": "사고 내용",
-        "Equip_Cats": "관련 장비 카테고리"
-    })
-
-    # -------------------------
-    # (5) 출력
-    # -------------------------
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
+        st.subheader("🔎 유사 사고 사례 보기")
+    
+        # -------------------------
+        # (1) 데이터 불러오기
+        # -------------------------
+        similar_df = mock_similar_cases()
+    
+        # -------------------------
+        # (2) 유사도 기준 정렬
+        # -------------------------
+        similar_df = similar_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
+    
+        # -------------------------
+        # (3) 순위 컬럼 생성
+        # -------------------------
+        similar_df["유사도 순위"] = similar_df.index + 1
+    
+        # -------------------------
+        # (4) 필요한 정보 추출
+        # -------------------------
+        display_df = similar_df[["유사도 순위", "Previous_Accident", "Equip_Cats"]].rename(columns={
+            "Previous_Accident": "사고 내용",
+            "Equip_Cats": "관련 장비 카테고리"
+        })
+    
+        # -------------------------
+        # (5) 출력
+        # -------------------------
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
     
 
     # -------------------------
