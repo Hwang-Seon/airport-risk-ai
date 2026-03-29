@@ -51,15 +51,20 @@ if run:
     # -------------------------
     llm_result = mock_llm(text)
 
-    st.subheader("🔎 사고 구조 분석")
+    st.subheader("🔎 LLM 기반 사고 구조 분석 결과")
 
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    col1.metric("사고 유형", llm_result["category"])
-    col2.metric("장비1", llm_result["equip_1"])
-    col3.metric("장비2", llm_result["equip_2"])
-    col4.metric("상태", llm_result["status"])
-    col5.metric("원인", llm_result["cause"])
+    llm_df = pd.DataFrame({
+    "항목": ["사고 유형", "장비1", "장비2", "상태", "원인"],
+    "값": [
+        llm_result["category"],
+        llm_result["equip_1"],
+        llm_result["equip_2"],
+        llm_result["status"],
+        llm_result["cause"]
+    ]
+    })
+    
+    st.dataframe(llm_df, use_container_width=True, hide_index=True)
 
     # -------------------------
     # (2) Feature Encoding
