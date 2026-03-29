@@ -1,130 +1,123 @@
 import streamlit as st
-import joblib
 import numpy as np
+import joblib
 import pandas as pd
 
 # =========================
-# 1. 모델 & encoder 로드
+# 1. 모델 / 인코더 로드
 # =========================
 model = joblib.load("xgb_model.pkl")
 encoders = joblib.load("encoders.pkl")
 
-st.set_page_config(page_title="항공 사고 위험도 분석", layout="centered")
-
-st.title("✈️ 항공 사고 위험도 분석 시스템")
-
-# =========================
-# 2. 허용 vocabulary (핵심 안전장치)
-# =========================
-VOCAB = {
-    col: list(encoders[col].classes_)
-    for col in encoders.keys()
-}
+st.set_page_config(page_title="사고 위험도 분석", layout="centered")
+st.title("✈️ 사고 위험도 분석 시스템 (LLM + XGBoost)")
 
 # =========================
-# 3. LLM (Mock or API 대체)
-#    → 반드시 "허용된 값만 출력"
+# 2. LLM (현재는 mock)
 # =========================
 def mock_llm(text):
-
-    # 실제 GPT로 바꿔도 반드시 이 구조 유지
     return {
         "category": "차량-차량",
         "equip_1": "버스",
         "equip_2": "트럭",
         "status": "주행",
-        "cause": "기상악화",
-        "S": 0,
-        "H": 0,
-        "E": 1,
-        "L": 1,
-        "severity_score": 3
+        "cause": "기상악화"
     }
 
 # =========================
-# 4. 안전 변환 함수 (핵심)
+# 3. feature engineering (학습과 동일해야 함)
 # =========================
-def safe_map(value, allowed_list):
-    if value in allowed_list:
-        return value
-    else:
-        return allowed_list[0]  # fallback (안전값)
+def get_vehicle_cat(equip):
+    mapping = {
+        "버스": "운송수송차량",
+        "트럭": "운송수송차량",
+        "승용차": "운송수송차량",
+        "택시": "운송수송차량",
+        "지게차": "산업장비",
+        "기타": "기타"
+    }
+    return mapping.get(equip, "기타")
 
 # =========================
-# 5. 위험도 정의
+# 4. 안전 인코딩
 # =========================
-def get_risk_label(pred_class):
-    if pred_class == 0:
-        return "🟢 낮은 위험"
-    elif pred_class == 1:
-        return "🟠 중간 위험"
+def safe_transform(col, value):
+    le = encoders[col]
+    if value in le.classes_:
+        return le.transform([value])[0]
     else:
-        return "🔴 높은 위험"
+        return 0  # unseen fallback
 
 # =========================
-# 6. UI 입력
+# 5. 입력 UI
 # =========================
 text = st.text_area(
-    "사고 내용을 입력하세요",
-    value="폭설로 미끄러워진 GSE도로에서 램프버스가 정지하지 못하고 트럭을 추돌함"
+    "사고 설명 입력",
+    value="폭설로 인해 버스가 미끄러져 트럭과 충돌함"
 )
 
 # =========================
-# 7. 실행
+# 6. 실행 버튼
 # =========================
 if st.button("분석 실행"):
 
     # -------------------------
-    # (1) LLM 사고 구조화
+    # (1) LLM 구조화
     # -------------------------
     llm_result = mock_llm(text)
 
-    # 🔥 핵심: 안전한 label로 강제 정제
-    llm_result["category"] = safe_map(llm_result["category"], VOCAB["category"])
-    llm_result["equip_1"] = safe_map(llm_result["equip_1"], VOCAB["equip_1"])
-    llm_result["equip_2"] = safe_map(llm_result["equip_2"], VOCAB["equip_2"])
-    llm_result["status"] = safe_map(llm_result["status"], VOCAB["status"])
-    llm_result["cause"] = safe_map(llm_result["cause"], VOCAB["cause"])
+    st.subheader("🧠 LLM 출력 (Structured)")
+
+    st.json(llm_result)
 
     # -------------------------
-    # (2) LLM 결과 UI 출력
+    # (2) feature engineering (핵심)
     # -------------------------
-    st.subheader("🧠 LLM 사고 분류 결과 (Structured Output)")
-
-    st.dataframe(pd.DataFrame([llm_result]))
+    features = {
+        "category": llm_result["category"],
+        "equip_1": llm_result["equip_1"],
+        "equip_2": llm_result["equip_2"],
+        "equip_1_cat": get_vehicle_cat(llm_result["equip_1"]),
+        "equip_2_cat": get_vehicle_cat(llm_result["equip_2"]),
+        "status": llm_result["status"],
+        "cause": llm_result["cause"]
+    }
 
     # -------------------------
-    # (3) ML 입력 벡터 생성
+    # (3) encoding (학습과 동일 순서 중요)
     # -------------------------
     X = np.array([[
-        encoders["category"].transform([llm_result["category"]])[0],
-        encoders["equip_1"].transform([llm_result["equip_1"]])[0],
-        encoders["equip_2"].transform([llm_result["equip_2"]])[0],
-        encoders["equip_1_cat"].transform([llm_result["equip_1"]])[0],
-        encoders["equip_2_cat"].transform([llm_result["equip_2"]])[0],
-        encoders["status"].transform([llm_result["status"]])[0],
-        encoders["cause"].transform([llm_result["cause"]])[0],
+        safe_transform("category", features["category"]),
+        safe_transform("equip_1", features["equip_1"]),
+        safe_transform("equip_2", features["equip_2"]),
+        safe_transform("equip_1_cat", features["equip_1_cat"]),
+        safe_transform("equip_2_cat", features["equip_2_cat"]),
+        safe_transform("status", features["status"]),
+        safe_transform("cause", features["cause"]),
     ]])
 
     # -------------------------
-    # (4) 모델 예측
+    # (4) prediction
     # -------------------------
     proba = model.predict_proba(X)[0]
     pred_class = int(np.argmax(proba))
-    confidence = float(np.max(proba))
 
-    risk_label = get_risk_label(pred_class)
+    label_map = {
+        0: "🟢 낮은 위험",
+        1: "🟠 중간 위험",
+        2: "🔴 높은 위험"
+    }
 
     # -------------------------
     # (5) 결과 출력
     # -------------------------
-    st.subheader("📊 위험도 분석 결과")
+    st.subheader("📊 위험도 예측 결과")
 
-    st.markdown(f"## {risk_label}")
+    st.markdown(f"## {label_map[pred_class]}")
 
-    st.metric("Confidence", f"{confidence:.2%}")
+    st.metric("Confidence", f"{np.max(proba):.2%}")
 
-    st.write("### 클래스별 확률 (Low / Medium / High)")
+    st.write("### Class Probability")
 
     st.bar_chart({
         "Low": [proba[0]],
@@ -132,13 +125,15 @@ if st.button("분석 실행"):
         "High": [proba[2]]
     })
 
-    st.write(f"예측 클래스: {pred_class}")
+    # -------------------------
+    # (6) 디버깅 정보 (중요)
+    # -------------------------
+    st.write("---")
+    st.write("Model features:", model.n_features_in_)
+    st.write("Input shape:", X.shape)
 
-    # -------------------------
-    # (6) 설명 (심사용)
-    # -------------------------
     st.info(
-        "LLM은 사고를 구조화하는 역할만 수행하며, "
-        "모든 출력은 학습된 taxonomy로 제한됩니다. "
-        "이후 XGBoost 모델이 위험도를 3단계로 분류합니다."
+        "LLM은 사고 정보를 구조화하고, "
+        "Python이 feature engineering을 수행한 뒤 "
+        "XGBoost가 위험도를 예측합니다."
     )
