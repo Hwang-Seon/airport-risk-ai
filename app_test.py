@@ -117,23 +117,25 @@ if st.button("분석 실행"):
 
     st.metric("Confidence", f"{np.max(proba):.2%}")
 
-    st.write("### Class Probability")
+    st.write("### 위험도 클래스별 확률")
 
     st.bar_chart({
-        "Low": [proba[0]],
-        "Medium": [proba[1]],
-        "High": [proba[2]]
+        "낮은위험": [proba[0]],
+        "중간위험": [proba[1]],
+        "높은위험": [proba[2]]
     })
+
+    st.info(
+        "낮은위험 : 단순 절차 위반, 단순 접촉, 장비 오작동 등"
+        "중간위험 : 장비 파손, 시설 파손, 경미한 인명 부상, 항공기 근접 사고 등"
+        "높은위험 : 인명 피해, 항공기 직접 피해 등"
 
     # -------------------------
     # (6) 디버깅 정보 (중요)
     # -------------------------
     st.write("---")
-    st.write("Model features:", model.n_features_in_)
-    st.write("Input shape:", X.shape)
 
     st.info(
-        "LLM은 사고 정보를 구조화하고, "
-        "Python이 feature engineering을 수행한 뒤 "
-        "XGBoost가 위험도를 예측합니다."
+        "LLM(GPT5.4)이 사고 정보를 구조화하고, "
+        "XGBoost 기반 학습 모델로 위험도를 예측합니다."
     )
