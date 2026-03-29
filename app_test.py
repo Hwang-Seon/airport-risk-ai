@@ -51,7 +51,7 @@ if run:
     # -------------------------
     llm_result = mock_llm(text)
 
-    st.subheader("🔎 LLM 기반 사고 구조 분석 결과")
+    st.subheader("💡 LLM 기반 사고 구조 분석 결과")
 
     llm_df = pd.DataFrame({
     "항목": ["사고 유형", "장비1", "장비2", "상태", "원인"],
@@ -104,43 +104,133 @@ if run:
     # -------------------------
     # (4) 결과 탭 구성
     # -------------------------
-    tab1, tab2, tab3 = st.tabs(["📊 위험도", "📈 확률 분포", "📚 유사 사례"])
+    
+    tab1, tab2 = st.tabs(["📊 사고 위험도 예측 결과", " 🔎 유사 사고 사례 보기"])
 
     # -------------------------
     # TAB 1: 위험도
     # -------------------------
     with tab1:
-        st.subheader("📊 최종 위험도")
-
-        st.markdown(f"# {label_map[pred_class]}")
-        st.metric("Confidence", f"{np.max(proba):.2%}")
-
-    # -------------------------
-    # TAB 2: 확률 시각화
-    # -------------------------
-    with tab2:
-        st.subheader("📈 클래스별 확률")
-
-        chart_df = pd.DataFrame({
-            "위험도": ["낮은", "중간", "높은"],
-            "확률": proba
+    
+        st.subheader("📊 사고 위험도 예측 결과")
+    
+        col1, col2 = st.columns([1, 2])
+    
+        # -------------------------
+        # (1) 왼쪽: 최종 위험도
+        # -------------------------
+        with col1:
+            st.markdown("### 🎯 최종 위험도")
+    
+            if pred_class == 0:
+                st.success(label_map[pred_class])
+            elif pred_class == 1:
+                st.warning(label_map[pred_class])
+            else:
+                st.error(label_map[pred_class])
+    
+            st.metric("Confidence", f"{np.max(proba):.2%}")
+    
+        # -------------------------
+        # (2) 오른쪽: 확률 분포
+        # -------------------------
+        with col2:
+            st.markdown("### 📈 위험도 클래스 확률 분포")
+    
+            chart_df = pd.DataFrame({
+                "위험도": ["낮은", "중간", "높은"],
+                "확률": proba
+            })
+    
+            st.bar_chart(chart_df.set_index("위험도"))
+    
+        # -------------------------
+        # (3) 하단: 상세 수치
+        # -------------------------
+        st.markdown("### 📋 상세 확률")
+    
+        df = pd.DataFrame({
+            "위험도": ["🟢 낮은", "🟠 중간", "🔴 높은"],
+            "확률": [f"{proba[0]:.2%}", f"{proba[1]:.2%}", f"{proba[2]:.2%}"]
         })
-
-        st.bar_chart(chart_df.set_index("위험도"))
+    
+        st.table(df)
+    
+        # -------------------------
+        # (4) 설명
+        # -------------------------
+        with st.expander("ℹ️ 위험도 기준"):
+            st.write("""
+            - 🟢 낮은위험: 단순 접촉, 경미 사고  
+            - 🟠 중간위험: 장비/시설 손상  
+            - 🔴 높은위험: 인명 피해 또는 항공기 손상  
+            """)
 
     # -------------------------
-    # TAB 3: 유사 사례
+    # TAB 2: 유사 사고 사례 출력
     # -------------------------
-    with tab3:
-        st.subheader("📚 유사 사고 사례")
 
-        df = pd.DataFrame([
-            {"사고": "램프버스 후진 중 급유차 추돌", "위험도": "높음"},
-            {"사고": "교차로 정차 차량 추돌", "위험도": "높음"},
-            {"사고": "버스-터그 충돌", "위험도": "높음"}
-        ])
+    # 아래 데이터는 입력 예시 데이터를 실제 유사도 분류 프로그램에 적용시킨 결과를 가져온 것입니다. 
+    def mock_similar_cases(): 
+            return pd.DataFrame([
+                {
+                    "Final_Score": 0.8009,
+                    "Cos_Sim_Score": 0.7009,
+                    "Equip_Match": "YES",
+                    "Previous_Accident": "램프버스가 후진 중 운전부주의로 차량 대기장소에서 급유를 위해 정차중이던 급유차량 추돌",
+                    "Equip_Cats": "운송수송차량 / 조업특수장비",
+                    "Severity": 3
+                },
+                {
+                    "Final_Score": 0.7697,
+                    "Cos_Sim_Score": 0.6697,
+                    "Equip_Match": "YES",
+                    "Previous_Accident": "승객을 수송중이던 램프버스가 교차로 운행 중 반대편 차량에 정차중인 차량 추돌",
+                    "Equip_Cats": "운송수송차량 / 운송수송차량",
+                    "Severity": 3
+                },
+                {
+                    "Final_Score": 0.7657,
+                    "Cos_Sim_Score": 0.6657,
+                    "Equip_Match": "YES",
+                    "Previous_Accident": "주행 중이던 램프버스와 화물 적재 후 조업도로에 진입 중이던 터그가 간 충돌",
+                    "Equip_Cats": "운송수송차량 / 조업특수장비",
+                    "Severity": 3
+                }
+            ])
 
-        st.dataframe(df, use_container_width=True)
+
+    with tab2:
+    st.subheader("🔎 유사 사고 사례 보기")
+
+    # -------------------------
+    # (1) 데이터 불러오기
+    # -------------------------
+    similar_df = mock_similar_cases()
+
+    # -------------------------
+    # (2) 유사도 기준 정렬
+    # -------------------------
+    similar_df = similar_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
+
+    # -------------------------
+    # (3) 순위 컬럼 생성
+    # -------------------------
+    similar_df["유사도 순위"] = similar_df.index + 1
+
+    # -------------------------
+    # (4) 필요한 정보 추출
+    # -------------------------
+    display_df = similar_df[["유사도 순위", "Previous_Accident", "Equip_Cats"]].rename(columns={
+        "Previous_Accident": "사고 내용",
+        "Equip_Cats": "관련 장비 카테고리"
+    })
+
+    # -------------------------
+    # (5) 출력
+    # -------------------------
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
+    
 
     # -------------------------
     # 설명
