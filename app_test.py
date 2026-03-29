@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import joblib
 import pandas as pd
-import plotly.express as px
 
 # =========================
 # 1. 모델 / 인코더 로드
@@ -110,35 +109,12 @@ if st.button("분석 실행"):
     
     st.write("### 위험도 클래스별 확률")
     
-    labels = ["낮은 위험", "중간 위험", "높은 위험"]
-    values = [proba[0], proba[1], proba[2]]
-    
-    df_plot = pd.DataFrame({
-        "위험도": labels,
-        "확률": values
+    df = pd.DataFrame({
+        "위험도": ["낮은 위험", "중간 위험", "높은 위험"],
+        "확률": [f"{proba[0]:.2%}", f"{proba[1]:.2%}", f"{proba[2]:.2%}"]
     })
     
-    # 정렬
-    df_plot = df_plot.sort_values("확률", ascending=True)
-    
-    fig = px.bar(
-        df_plot,
-        x="확률",
-        y="위험도",
-        orientation="h",
-        text="확률"
-    )
-    
-    fig.update_traces(texttemplate='%{text:.2%}', textposition='outside')
-    
-    fig.update_layout(
-        xaxis_title="Probability",
-        yaxis_title="",
-        margin=dict(l=20, r=20, t=20, b=20),
-        height=300
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+    st.table(df)
 
     st.markdown("""
     ℹ️ **위험도 정의**
