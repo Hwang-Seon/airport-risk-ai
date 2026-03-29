@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import joblib
 import pandas as pd
+import plotly.express as px
 
 # =========================
 # 1. 모델 / 인코더 로드
@@ -17,11 +18,11 @@ st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템
 # =========================
 def mock_llm(text):
     return {
-        "category": "차량-차량",
-        "equip_1": "버스",
-        "equip_2": "트럭",
-        "status": "주행",
-        "cause": "기상악화"
+        "사고유형": "차량-차량",
+        "주요장비 1": "버스",
+        "주요장비 2": "트럭",
+        "상황": "주행",
+        "사고원인": "기상악화"
     }
 
 # =========================
@@ -99,24 +100,53 @@ if st.button("분석 실행"):
     # -------------------------
     # (5) 결과 출력
     # -------------------------
+
+    
     st.subheader("📊 위험도 예측 결과")
 
     st.markdown(f"## {label_map[pred_class]}")
-
+    
     st.metric("Confidence", f"{np.max(proba):.2%}")
-
+    
     st.write("### 위험도 클래스별 확률")
-
-    st.bar_chart({
-        "낮은위험": [proba[0]],
-        "중간위험": [proba[1]],
-        "높은위험": [proba[2]]
+    
+    labels = ["낮은 위험", "중간 위험", "높은 위험"]
+    values = [proba[0], proba[1], proba[2]]
+    
+    df_plot = pd.DataFrame({
+        "위험도": labels,
+        "확률": values
     })
+    
+    # 정렬
+    df_plot = df_plot.sort_values("확률", ascending=True)
+    
+    fig = px.bar(
+        df_plot,
+        x="확률",
+        y="위험도",
+        orientation="h",
+        text="확률"
+    )
+    
+    fig.update_traces(texttemplate='%{text:.2%}', textposition='outside')
+    
+    fig.update_layout(
+        xaxis_title="Probability",
+        yaxis_title="",
+        margin=dict(l=20, r=20, t=20, b=20),
+        height=300
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
-    st.info(
-        "낮은위험 : 단순 절차 위반, 단순 접촉, 장비 오작동 등 "
-        "중간위험 : 장비 파손, 시설 파손, 경미한 인명 부상, 항공기 근접 사고 등 "
-        "높은위험 : 인명 피해, 항공기 직접 피해 등")
+    st.markdown("""
+    ℹ️ **위험도 정의**
+    
+    - 🟢 **낮은위험** : 단순 절차 위반, 단순 접촉, 장비 오작동 등  
+    - 🟠 **중간위험** : 장비 파손, 시설 파손, 경미한 인명 부상, 항공기 근접 사고 등  
+    - 🔴 **높은위험** : 인명 피해, 항공기 직접 피해 등  
+    """)
 
     # -------------------------
     # (6) 디버깅 정보 (중요)
