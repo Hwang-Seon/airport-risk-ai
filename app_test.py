@@ -69,7 +69,7 @@ with col4:
     st.text_input("시간", value=time_value, disabled=True)
 
 with col5:
-    weather = st.selectbox("날씨", weather_list)
+    weather = st.selectbox("위험 기상", weather_list)
 
 run = st.button("🚀 분석 실행")
 
