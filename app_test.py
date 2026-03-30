@@ -193,24 +193,57 @@ if run:
             """, unsafe_allow_html=True)
     
         # 오른쪽: 확률 분포
-        with col2:
+    with col2:
     
-            chart_df = pd.DataFrame({
-                "위험도": ["낮은위험", "중간위험", "높은위험"],
-                "확률": proba
-            })
+        chart_df = pd.DataFrame({
+            "위험도": ["낮은위험", "중간위험", "높은위험"],
+            "확률": proba
+        })
     
-            chart = (
-                alt.Chart(chart_df)
-                .mark_bar(size=25)
-                .encode(
-                    y=alt.Y("위험도:N", sort=["낮은위험", "중간위험", "높은위험"]),
-                    x=alt.X("확률:Q", axis=alt.Axis(format="%")),
-                    color=alt.Color("위험도:N", legend=None)
-                )
+        # 🔥 색상 매핑
+        color_scale = alt.Scale(
+            domain=["낮은위험", "중간위험", "높은위험"],
+            range=["#4CAF50", "#FF9800", "#F44336"]  # 초록 / 주황 / 빨강
+        )
+    
+        # 막대
+        bars = (
+            alt.Chart(chart_df)
+            .mark_bar(size=20, cornerRadius=6)
+            .encode(
+                y=alt.Y(
+                    "위험도:N",
+                    sort=["낮은위험", "중간위험", "높은위험"],
+                    title=""
+                ),
+                x=alt.X(
+                    "확률:Q",
+                    title="확률",
+                    axis=alt.Axis(format="%")
+                ),
+                color=alt.Color("위험도:N", scale=color_scale, legend=None)
             )
+            .properties(height=220)
+        )
     
-            st.altair_chart(chart, use_container_width=True)
+        # 텍스트 (확률 표시)
+        text = (
+            alt.Chart(chart_df)
+            .mark_text(
+                align="left",
+                baseline="middle",
+                dx=5,
+                fontSize=13,
+                fontWeight="bold"
+            )
+            .encode(
+                y=alt.Y("위험도:N", sort=["낮은위험", "중간위험", "높은위험"]),
+                x="확률:Q",
+                text=alt.Text("확률:Q", format=".1%")
+            )
+        )
+    
+        st.altair_chart(bars + text, use_container_width=True)
     
         # 설명
         st.info(""" 
