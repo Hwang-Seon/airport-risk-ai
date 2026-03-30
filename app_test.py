@@ -14,7 +14,7 @@ st.set_page_config(page_title="사고 위험도 분석", layout="wide")
 model = joblib.load("xgb_model.pkl")
 encoders = joblib.load("encoders.pkl")
 
-st.title("✈️ AI 기반 공항 지상조업 사고 위험도 사전 예측 시스템")
+st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
 
 st.warning("""
 ⚠️ 현재 작업 상태 또는 작업 계획을 입력하세요.
