@@ -18,19 +18,42 @@ st.set_page_config(page_title="인천국제공항 산업재해 관리 시스템"
 if "mode" not in st.session_state:
     st.session_state.mode = None
 
+def go_home(): # 뒤로가기함수
+    if st.button("⬅️ 처음으로 돌아가기"):
+        st.session_state.mode = None
+        st.rerun()
+
 if st.session_state.mode is None:
 
-    st.markdown("# ✈️ 공항 지상조업 리스크 관리 AI 시스템")
-    st.markdown("### 원하는 기능을 선택하세요")
+    st.markdown("# ✈️ 공항 지상조업 AI 시스템")
+    st.markdown("### 원하는 기능을 선택하세요\n")
 
     col1, col2 = st.columns(2)
 
+    # -------------------------
+    # 카드 1: 위험도 분석
+    # -------------------------
     with col1:
-        if st.button("📊 작업 위험도 분석하기", use_container_width=True):
+        st.markdown("""
+        ### 📊 작업 위험도 분석하기
+        - 작업 상황 위험도 예측  
+        - 유사 사고 사례 보기  
+        """)
+
+        if st.button("👉 분석 시작", use_container_width=True):
             st.session_state.mode = "analysis"
 
+    # -------------------------
+    # 카드 2: DB 추가
+    # -------------------------
     with col2:
-        if st.button("📝 사고 발생 DB 추가하기", use_container_width=True):
+        st.markdown("""
+        ### 📝 사고 발생 DB 추가하기
+        - 사고 상황 분류  
+        - DB 데이터 자동 추가  
+        """)
+
+        if st.button("👉 등록 시작", use_container_width=True):
             st.session_state.mode = "db"
 
     st.stop()
@@ -41,6 +64,8 @@ if st.session_state.mode is None:
 # =========================
 
 if st.session_state.mode == "analysis":
+    st.markdown("### 📊 작업 위험도 분석")
+    go_home()
 
     # =========================
     # 1. 기본 설정
@@ -55,11 +80,6 @@ if st.session_state.mode == "analysis":
         return SentenceTransformer('jhgan/ko-sroberta-multitask')
     
     sbert_model = load_sbert()
-    
-    # 시작 페이지
-    #st.set_page_config(page_title="인천국제공항 산업재해 관리 시스템", layout="wide")
-    
-    #st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
     
     st.warning("""
     ⚠️ 현재 작업 상태 또는 작업 계획을 입력하세요.
@@ -317,12 +337,12 @@ if st.session_state.mode == "analysis":
             
                 # 설명
                 st.info(""" 
-            ℹ️ 위험도 기준
-            
-            - 🟢 낮은위험: 경미한 상황  
-            - 🟠 중간위험: 장비 손상 가능  
-            - 🔴 높은위험: 인명/항공기 위험  
-            """)
+                ℹ️ 위험도 기준
+                
+                - 🟢 낮은위험: 경미한 상황  
+                - 🟠 중간위험: 장비 손상 가능  
+                - 🔴 높은위험: 인명/항공기 위험  
+                """)
             
         # -------------------------
         # TAB 2: 유사 사고 사례
@@ -355,10 +375,10 @@ if st.session_state.mode == "analysis":
                 "risk": "위험도"
             })
         
-        display_df["유사도 점수"] = sim_df["Final_Score"].round(3)
-        display_df["위험도"] = display_df["위험도"].map({0: "🟢 낮음", 1: "🟠 중간", 2: "🔴 높음"})
-        
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+            display_df["유사도 점수"] = sim_df["Final_Score"].round(3)
+            display_df["위험도"] = display_df["위험도"].map({0: "🟢 낮음", 1: "🟠 중간", 2: "🔴 높음"})
+            
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 
 # =========================
@@ -368,6 +388,7 @@ if st.session_state.mode == "analysis":
 elif st.session_state.mode == "db":
 
     st.markdown("### 📝 사고 데이터 등록")
+    go_home()
 
     st.error("""
     ⚠️ 데모 버전 안내 ⚠️
