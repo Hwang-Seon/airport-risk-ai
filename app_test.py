@@ -320,5 +320,7 @@ if run:
             "task": "작업",
             "risk": "위험도"
         })
-    
+
+        display_df["위험도"] = display_df["위험도"].map({0: "🟢 낮음", 1: "🟠 중간", 2: "🔴 높음"})
+        
         st.dataframe(display_df, use_container_width=True, hide_index=True)
