@@ -321,7 +321,7 @@ if run:
             "risk": "위험도"
         })
         
-        display_df["유사도"] = sim_df["Final_Score"].round(3)
+        display_df["유사도 점수"] = sim_df["Final_Score"].round(3)
         display_df["위험도"] = display_df["위험도"].map({0: "🟢 낮음", 1: "🟠 중간", 2: "🔴 높음"})
         
         st.dataframe(display_df, use_container_width=True, hide_index=True)
