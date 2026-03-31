@@ -12,14 +12,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 1. 기본 설정
 # =========================
 
-# 🔥 유사도 데이터 로드 (아직 사용 안 함)
-try:
-    sim_data = pd.read_csv("final_data_for_embedding.csv").fillna("없음")
-    sim_embeddings = np.load("new_embeddings.npy")
-    st.success("유사도 데이터 로드 완료")
-except Exception as e:
-    st.error(f"유사도 데이터 로드 실패: {e}")
-    st.stop()
+# 유사도 임베딩 데이터/모델
+sim_data = pd.read_csv("final_data_for_embedding.csv").fillna("없음")
+sim_embeddings = np.load("new_embeddings.npy")
 
 @st.cache_resource
 def load_sbert():
@@ -27,19 +22,18 @@ def load_sbert():
 
 sbert_model = load_sbert()
 
-
-
-
+# 시작 페이지
 st.set_page_config(page_title="사고 위험도 분석", layout="wide")
-
-xgb_model = joblib.load("xgb_model.pkl")
-encoders = joblib.load("encoders.pkl")
 
 st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
 
 st.warning("""
 ⚠️ 현재 작업 상태 또는 작업 계획을 입력하세요.
 """)
+
+# ML 모델/엔코더
+xgb_model = joblib.load("xgb_model.pkl")
+encoders = joblib.load("encoders.pkl")
 
 # =========================
 # 2. 카테고리 정의
@@ -76,18 +70,18 @@ st.markdown("### 🔧 작업 상황 입력")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    equip = st.selectbox("장비 (주체)", equip_list)
+    equip = st.selectbox("작업 장비 (주체)", equip_list)
 
 with col2:
     task = st.selectbox("작업 상태", task_list)
 
 with col3:
-    location = st.selectbox("위치", location_list)
+    location = st.selectbox("작업 위치", location_list)
 
 col4, col5 = st.columns(2)
 
 with col4:
-    st.text_input("시간", value=time_value, disabled=True)
+    st.text_input("시간 (주/야간 자동설정 됩니다.)", value=time_value, disabled=True)
 
 with col5:
     weather = st.selectbox("위험 기상", weather_list)
@@ -98,10 +92,12 @@ run = st.button("🚀 분석 실행")
 # 5. 함수
 # =========================
 
+# 엔코더 함수
 def safe_transform(col, value):
     le = encoders[col]
     return le.transform([value])[0] if value in le.classes_ else 0
 
+# 장비 분류 함수
 def get_slim_category(name):
     if not name or name == '없음':
         return '기타/미분류'
@@ -127,7 +123,7 @@ def get_slim_category(name):
     else:
         return '기타/미분류'
 
-
+# 유사 사례 탐색 함수
 def find_similar_cases(equip, task, location, weather):
 
     query = f"[장비: {equip}] [작업: {task}] [장소: {location}] [날씨: {weather}]"
@@ -135,11 +131,6 @@ def find_similar_cases(equip, task, location, weather):
 
     if len(query_vec.shape) == 1:
         query_vec = query_vec.reshape(1, -1)
-
-    ###
-    st.write("query_vec shape:", query_vec.shape)
-    st.write("embeddings shape:", sim_embeddings.shape)
-    ###
 
     sims = cosine_similarity(query_vec, sim_embeddings)[0]
 
@@ -149,8 +140,6 @@ def find_similar_cases(equip, task, location, weather):
     result["Final_Score"] = sims[top_idx]
 
     return result
-
-
 
 
 # =========================
