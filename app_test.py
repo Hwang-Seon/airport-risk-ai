@@ -262,7 +262,7 @@ if st.session_state.mode == "analysis":
         # -------------------------
         with tab1:
         
-            st.subheader("### 📊 사고 위험도 예측 결과")
+            st.subheader("📊 사고 위험도 예측 결과")
         
             col1, col2 = st.columns([1, 2])
         
@@ -352,7 +352,7 @@ if st.session_state.mode == "analysis":
         
         with tab2:
         
-            st.subheader("### 🔎 유사 사고 사례 (TOP 3)")
+            st.subheader("🔎 유사 사고 사례 (TOP 3)")
         
             sim_df = find_similar_cases(
                 features["equip"],
