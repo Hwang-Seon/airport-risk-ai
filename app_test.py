@@ -13,7 +13,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 모드 설정
 # =========================
 
-st.set_page_config(page_title="인천국제공항 산업재해 관리 시스템", layout="wide")
+st.set_page_config(page_title="ICN 산업재해 관리 시스템", layout="wide")
 
 if "mode" not in st.session_state:
     st.session_state.mode = None
@@ -262,7 +262,7 @@ if st.session_state.mode == "analysis":
         # -------------------------
         with tab1:
         
-            st.subheader("📊 사고 위험도 예측 결과")
+            st.subheader("### 📊 사고 위험도 예측 결과")
         
             col1, col2 = st.columns([1, 2])
         
@@ -352,7 +352,7 @@ if st.session_state.mode == "analysis":
         
         with tab2:
         
-            st.subheader("🔎 유사 사고 사례 (TOP 3)")
+            st.subheader("### 🔎 유사 사고 사례 (TOP 3)")
         
             sim_df = find_similar_cases(
                 features["equip"],
