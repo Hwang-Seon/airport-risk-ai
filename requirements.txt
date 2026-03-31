@@ -3,3 +3,4 @@ xgboost
 scikit-learn
 numpy
 joblib
+sentence-transformers
