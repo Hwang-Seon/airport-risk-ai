@@ -21,7 +21,11 @@ except Exception as e:
     st.error(f"유사도 데이터 로드 실패: {e}")
     st.stop()
 
-sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
+@st.cache_resource
+def load_sbert():
+    return SentenceTransformer('jhgan/ko-sroberta-multitask')
+
+sbert_model = load_sbert()
 
 
 
@@ -127,9 +131,10 @@ def get_slim_category(name):
 def find_similar_cases(equip, task, location, weather):
 
     query = f"[장비: {equip}] [작업: {task}] [장소: {location}] [날씨: {weather}]"
-
-    # 🔥 임시: sbert 없이 테스트용 → 첫 번째 벡터 사용
     query_vec = sbert_model.encode([query])
+
+    if len(query_vec.shape) == 1:
+        query_vec = query_vec.reshape(1, -1)
 
     ###
     st.write("query_vec shape:", query_vec.shape)
