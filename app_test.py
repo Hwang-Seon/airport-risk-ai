@@ -42,6 +42,7 @@ if st.session_state.mode is None:
 
         if st.button("👉 분석 시작", use_container_width=True):
             st.session_state.mode = "analysis"
+            st.rerun()
 
     # -------------------------
     # 카드 2: DB 추가
@@ -55,6 +56,7 @@ if st.session_state.mode is None:
 
         if st.button("👉 등록 시작", use_container_width=True):
             st.session_state.mode = "db"
+            st.rerun()
 
     st.stop()
 
@@ -64,8 +66,8 @@ if st.session_state.mode is None:
 # =========================
 
 if st.session_state.mode == "analysis":
-    st.markdown("### 📊 작업 위험도 분석")
     go_home()
+    st.markdown("## 📊 작업 위험도 분석")
 
     # =========================
     # 1. 기본 설정
@@ -386,9 +388,8 @@ if st.session_state.mode == "analysis":
 # =========================
 
 elif st.session_state.mode == "db":
-
-    st.markdown("### 📝 사고 데이터 등록")
     go_home()
+    st.markdown("## 📝 사고 데이터 등록")
 
     st.error("""
     ⚠️ 데모 버전 안내 ⚠️
