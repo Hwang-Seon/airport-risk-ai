@@ -5,6 +5,8 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import altair as alt
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # =========================
 # 1. 기본 설정
@@ -13,6 +15,11 @@ st.set_page_config(page_title="사고 위험도 분석", layout="wide")
 
 xgb_model = joblib.load("xgb_model.pkl")
 encoders = joblib.load("encoders.pkl")
+
+# 🔥 SBERT 로드
+sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
+sentence_embeddings = np.load("new_embeddings.npy")
+data = pd.read_csv("final_data_for_embedding.csv").fillna("없음")
 
 st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
 
@@ -106,15 +113,27 @@ def get_slim_category(name):
     else:
         return '기타/미분류'
 
+# 🔥 유사도 함수 (TOP3)
+def find_similar_cases(equip, task, location, weather):
+
+    query = f"[장비: {equip}] [작업: {task}] [장소: {location}] [날씨: {weather}]"
+
+    query_vec = sbert_model.encode([query])
+    sims = cosine_similarity(query_vec, sentence_embeddings)[0]
+
+    top_idx = np.argsort(sims)[::-1][:3]
+
+    result = data.iloc[top_idx].copy()
+    result["Final_Score"] = sims[top_idx]
+
+    return result
+
 # =========================
 # 6. 실행
 # =========================
 
 if run:
 
-    # -------------------------
-    # (1) Feature 구성
-    # -------------------------
     features = {
         "equip": equip,
         "equip_cat": get_slim_category(equip),
@@ -124,21 +143,13 @@ if run:
         "weather": weather if weather != "없음" else "기타"
     }
 
-    # -------------------------
-    # (2) 입력 확인 UI
-    # -------------------------
     st.subheader("📋 입력된 작업 상황")
 
-    feature_df = pd.DataFrame({
+    st.dataframe(pd.DataFrame({
         "항목": ["장비", "장비 카테고리", "작업 상태", "위치", "시간", "날씨"],
         "값": list(features.values())
-    })
+    }), use_container_width=True, hide_index=True)
 
-    st.dataframe(feature_df, use_container_width=True, hide_index=True)
-
-    # -------------------------
-    # (3) 모델 입력
-    # -------------------------
     X = np.array([[
         safe_transform("equip", features["equip"]),
         safe_transform("equip_cat", features["equip_cat"]),
@@ -148,9 +159,6 @@ if run:
         safe_transform("weather", features["weather"]),
     ]])
 
-    # -------------------------
-    # (4) 예측
-    # -------------------------
     proba = xgb_model.predict_proba(X)[0]
     pred_class = int(np.argmax(proba))
 
@@ -160,151 +168,72 @@ if run:
         2: "🔴 높은 위험"
     }
 
-    # -------------------------
-    # (5) 결과 탭 구성
-    # -------------------------
     tab1, tab2 = st.tabs(["📊 사고 위험도 예측 결과", "🔎 유사 사고 사례 보기"])
-    
+
     # -------------------------
-    # TAB 1: 위험도 결과
+    # TAB 1
     # -------------------------
     with tab1:
-    
-        st.subheader("📊 사고 위험도 예측 결과")
-    
+
         col1, col2 = st.columns([1, 2])
-    
-        # 왼쪽: 최종 위험도
+
         with col1:
-            st.markdown("### 🎯 최종 위험도")
-    
             if pred_class == 0:
                 st.success(label_map[pred_class])
             elif pred_class == 1:
                 st.warning(label_map[pred_class])
             else:
                 st.error(label_map[pred_class])
-    
-            st.markdown(f"""
-            <div style="font-size:14px; color:gray;">Confidence</div>
-            <div style="font-size:20px; font-weight:bold;">
-                {np.max(proba):.2%}
-            </div>
-            """, unsafe_allow_html=True)
-    
-        # 오른쪽: 확률 분포
-    with col2:
-    
-        chart_df = pd.DataFrame({
-            "위험도": ["낮은위험", "중간위험", "높은위험"],
-            "확률": proba
-        })
-    
-        # 🔥 색상 매핑
-        color_scale = alt.Scale(
-            domain=["낮은위험", "중간위험", "높은위험"],
-            range=["#4CAF50", "#FF9800", "#F44336"]  # 초록 / 주황 / 빨강
-        )
-    
-        # 막대
-        bars = (
-            alt.Chart(chart_df)
-            .mark_bar(size=20, cornerRadius=6)
-            .encode(
-                y=alt.Y(
-                    "위험도:N",
-                    sort=["낮은위험", "중간위험", "높은위험"],
-                    title=""
-                ),
-                x=alt.X(
-                    "확률:Q",
-                    title="확률",
-                    axis=alt.Axis(format="%")
-                ),
+
+            st.markdown(f"**Confidence:** {np.max(proba):.2%}")
+
+        with col2:
+            chart_df = pd.DataFrame({
+                "위험도": ["낮은위험", "중간위험", "높은위험"],
+                "확률": proba
+            })
+
+            color_scale = alt.Scale(
+                domain=["낮은위험", "중간위험", "높은위험"],
+                range=["#4CAF50", "#FF9800", "#F44336"]
+            )
+
+            bars = alt.Chart(chart_df).mark_bar(size=20).encode(
+                y="위험도:N",
+                x=alt.X("확률:Q", axis=alt.Axis(format="%")),
                 color=alt.Color("위험도:N", scale=color_scale, legend=None)
-            )
-            .properties(height=220)
-        )
-    
-        # 텍스트 (확률 표시)
-        text = (
-            alt.Chart(chart_df)
-            .mark_text(
-                align="left",
-                baseline="middle",
-                dx=5,
-                fontSize=13,
-                fontWeight="bold"
-            )
-            .encode(
-                y=alt.Y("위험도:N", sort=["낮은위험", "중간위험", "높은위험"]),
-                x="확률:Q",
-                text=alt.Text("확률:Q", format=".1%")
-            )
-        )
-    
-        st.altair_chart(bars + text, use_container_width=True)
-    
-        # 설명
-        st.info(""" 
-    ℹ️ 위험도 기준
-    
-    - 🟢 낮은위험: 경미한 상황  
-    - 🟠 중간위험: 장비 손상 가능  
-    - 🔴 높은위험: 인명/항공기 위험  
-    """)
-    
+            ).properties(height=220)
+
+            st.altair_chart(bars, use_container_width=True)
+
     # -------------------------
-    # TAB 2: 유사 사고 사례
+    # TAB 2 (🔥 실제 유사도)
     # -------------------------
-    
-    def mock_similar_cases(): 
-        return pd.DataFrame([
-            {
-                "Final_Score": 0.8009,
-                "Cos_Sim_Score": 0.7009,
-                "Equip_Match": "YES",
-                "Previous_Accident": "램프버스가 후진 중 운전부주의로 차량 대기장소에서 급유를 위해 정차중이던 급유차량 추돌",
-                "Equip_Cats": "운송수송차량 / 조업특수장비",
-                "Severity": 3
-            },
-            {
-                "Final_Score": 0.7697,
-                "Cos_Sim_Score": 0.6697,
-                "Equip_Match": "YES",
-                "Previous_Accident": "승객을 수송중이던 램프버스가 교차로 운행 중 반대편 차량에 정차중인 차량 추돌",
-                "Equip_Cats": "운송수송차량 / 운송수송차량",
-                "Severity": 3
-            },
-            {
-                "Final_Score": 0.7657,
-                "Cos_Sim_Score": 0.6657,
-                "Equip_Match": "YES",
-                "Previous_Accident": "주행 중이던 램프버스와 화물 적재 후 조업도로에 진입 중이던 터그가 간 충돌",
-                "Equip_Cats": "운송수송차량 / 조업특수장비",
-                "Severity": 3
-            }
-        ])
-    
     with tab2:
-    
-        st.subheader("🔎 유사 사고 사례 보기")
-    
-        # (1) 데이터
-        similar_df = mock_similar_cases()
-    
-        # (2) 정렬
-        similar_df = similar_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
-    
-        # (3) 순위
-        similar_df["유사도 순위"] = similar_df.index + 1
-    
-        # (4) 표시용
-        display_df = similar_df[["유사도 순위", "Previous_Accident", "Equip_Cats"]].rename(columns={
-            "Previous_Accident": "사고 내용",
-            "Equip_Cats": "관련 장비 카테고리"
+
+        st.subheader("🔎 유사 사고 사례 (TOP 3)")
+
+        sim_df = find_similar_cases(
+            features["equip"],
+            features["task"],
+            features["location"],
+            features["weather"]
+        )
+
+        sim_df = sim_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
+        sim_df["유사도 순위"] = sim_df.index + 1
+
+        display_df = sim_df[[
+            "유사도 순위",
+            "corrected_text",
+            "equip",
+            "task",
+            "risk"
+        ]].rename(columns={
+            "corrected_text": "사고 내용",
+            "equip": "장비",
+            "task": "작업",
+            "risk": "위험도"
         })
-    
-        # (5) 출력
+
         st.dataframe(display_df, use_container_width=True, hide_index=True)
-        
