@@ -13,7 +13,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 모드 설정
 # =========================
 
-st.set_page_config(page_title="ICN 산업재해 관리 시스템", layout="wide")
+st.set_page_config(page_title="ICN 산업재해 관리 시스템 Ⓒ 2026 순두부", layout="wide")
 
 st.caption("Developed by Team 순두부 | Incheon Airport AI Project")
 st.markdown("---")
