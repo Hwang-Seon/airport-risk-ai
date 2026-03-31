@@ -9,6 +9,19 @@ import altair as alt
 # =========================
 # 1. 기본 설정
 # =========================
+
+# 🔥 유사도 데이터 로드 (아직 사용 안 함)
+try:
+    sim_data = pd.read_csv("final_data_for_embedding.csv").fillna("없음")
+    sim_embeddings = np.load("new_embeddings.npy")
+    st.success("유사도 데이터 로드 완료")
+except Exception as e:
+    st.error(f"유사도 데이터 로드 실패: {e}")
+    st.stop()
+
+
+
+
 st.set_page_config(page_title="사고 위험도 분석", layout="wide")
 
 xgb_model = joblib.load("xgb_model.pkl")
