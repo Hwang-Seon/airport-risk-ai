@@ -4,3 +4,4 @@ scikit-learn
 numpy
 joblib
 sentence-transformers
+torch
