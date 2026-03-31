@@ -23,6 +23,11 @@ except Exception as e:
 
 sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
 
+st.write("query_vec shape:", query_vec.shape)
+st.write("embeddings shape:", sim_embeddings.shape)
+
+
+
 
 st.set_page_config(page_title="사고 위험도 분석", layout="wide")
 
