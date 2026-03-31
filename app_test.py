@@ -23,9 +23,6 @@ except Exception as e:
 
 sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-st.write("query_vec shape:", query_vec.shape)
-st.write("embeddings shape:", sim_embeddings.shape)
-
 
 
 
@@ -133,6 +130,11 @@ def find_similar_cases(equip, task, location, weather):
 
     # 🔥 임시: sbert 없이 테스트용 → 첫 번째 벡터 사용
     query_vec = sbert_model.encode([query])
+
+    ###
+    st.write("query_vec shape:", query_vec.shape)
+    st.write("embeddings shape:", sim_embeddings.shape)
+    ###
 
     sims = cosine_similarity(query_vec, sim_embeddings)[0]
 
