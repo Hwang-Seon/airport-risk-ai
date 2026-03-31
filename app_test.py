@@ -13,17 +13,34 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 모드 설정
 # =========================
 
-mode = st.radio(
-    "기능 선택",
-    ["📊 작업 위험도 분석", "📝 사고 발생 DB 추가"],
-    horizontal=True
-)
+st.set_page_config(page_title="인천국제공항 산업재해 관리 시스템", layout="wide")
+
+if "mode" not in st.session_state:
+    st.session_state.mode = None
+
+if st.session_state.mode is None:
+
+    st.markdown("# ✈️ 공항 지상조업 리스크 관리 AI 시스템")
+    st.markdown("### 원하는 기능을 선택하세요")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("📊 작업 위험도 분석하기", use_container_width=True):
+            st.session_state.mode = "analysis"
+
+    with col2:
+        if st.button("📝 사고 발생 DB 추가하기", use_container_width=True):
+            st.session_state.mode = "db"
+
+    st.stop()
+
 
 # =========================
 # A. 작업 위험도 분석 모드
 # =========================
 
-if mode == "📊 작업 위험도 분석":
+if st.session_state.mode == "analysis":
 
     # =========================
     # 1. 기본 설정
@@ -40,9 +57,9 @@ if mode == "📊 작업 위험도 분석":
     sbert_model = load_sbert()
     
     # 시작 페이지
-    st.set_page_config(page_title="사고 위험도 분석", layout="wide")
+    #st.set_page_config(page_title="인천국제공항 산업재해 관리 시스템", layout="wide")
     
-    st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
+    #st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
     
     st.warning("""
     ⚠️ 현재 작업 상태 또는 작업 계획을 입력하세요.
@@ -348,7 +365,7 @@ if mode == "📊 작업 위험도 분석":
 # A. 작업 위험도 분석 모드
 # =========================
 
-elif mode == "📝 사고 발생 DB 추가":
+elif st.session_state.mode == "db":
 
     st.markdown("### 📝 사고 데이터 등록")
 
