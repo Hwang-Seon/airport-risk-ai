@@ -11,7 +11,7 @@ import altair as alt
 # =========================
 st.set_page_config(page_title="사고 위험도 분석", layout="wide")
 
-model = joblib.load("xgb_model.pkl")
+xgb_model = joblib.load("xgb_model.pkl")
 encoders = joblib.load("encoders.pkl")
 
 st.title("✈️ AI 기반 공항 지상조업 사고 리스크 분석 시스템")
@@ -151,7 +151,7 @@ if run:
     # -------------------------
     # (4) 예측
     # -------------------------
-    proba = model.predict_proba(X)[0]
+    proba = xgb_model.predict_proba(X)[0]
     pred_class = int(np.argmax(proba))
 
     label_map = {
