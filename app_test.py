@@ -119,6 +119,28 @@ def get_slim_category(name):
     else:
         return '기타/미분류'
 
+
+from sklearn.metrics.pairwise import cosine_similarity
+
+def find_similar_cases(equip, task, location, weather):
+
+    query = f"[장비: {equip}] [작업: {task}] [장소: {location}] [날씨: {weather}]"
+
+    # 🔥 임시: sbert 없이 테스트용 → 첫 번째 벡터 사용
+    query_vec = sim_embeddings[0].reshape(1, -1)
+
+    sims = cosine_similarity(query_vec, sim_embeddings)[0]
+
+    top_idx = np.argsort(sims)[::-1][:3]
+
+    result = sim_data.iloc[top_idx].copy()
+    result["Final_Score"] = sims[top_idx]
+
+    return result
+
+
+
+
 # =========================
 # 6. 실행
 # =========================
@@ -271,52 +293,31 @@ if run:
     # TAB 2: 유사 사고 사례
     # -------------------------
     
-    def mock_similar_cases(): 
-        return pd.DataFrame([
-            {
-                "Final_Score": 0.8009,
-                "Cos_Sim_Score": 0.7009,
-                "Equip_Match": "YES",
-                "Previous_Accident": "램프버스가 후진 중 운전부주의로 차량 대기장소에서 급유를 위해 정차중이던 급유차량 추돌",
-                "Equip_Cats": "운송수송차량 / 조업특수장비",
-                "Severity": 3
-            },
-            {
-                "Final_Score": 0.7697,
-                "Cos_Sim_Score": 0.6697,
-                "Equip_Match": "YES",
-                "Previous_Accident": "승객을 수송중이던 램프버스가 교차로 운행 중 반대편 차량에 정차중인 차량 추돌",
-                "Equip_Cats": "운송수송차량 / 운송수송차량",
-                "Severity": 3
-            },
-            {
-                "Final_Score": 0.7657,
-                "Cos_Sim_Score": 0.6657,
-                "Equip_Match": "YES",
-                "Previous_Accident": "주행 중이던 램프버스와 화물 적재 후 조업도로에 진입 중이던 터그가 간 충돌",
-                "Equip_Cats": "운송수송차량 / 조업특수장비",
-                "Severity": 3
-            }
-        ])
-    
     with tab2:
     
-        st.subheader("🔎 유사 사고 사례 보기")
+        st.subheader("🔎 유사 사고 사례 (TOP 3)")
     
-        # (1) 데이터
-        similar_df = mock_similar_cases()
+        sim_df = find_similar_cases(
+            features["equip"],
+            features["task"],
+            features["location"],
+            features["weather"]
+        )
     
-        # (2) 정렬
-        similar_df = similar_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
+        sim_df = sim_df.sort_values(by="Final_Score", ascending=False).reset_index(drop=True)
+        sim_df["유사도 순위"] = sim_df.index + 1
     
-        # (3) 순위
-        similar_df["유사도 순위"] = similar_df.index + 1
-    
-        # (4) 표시용
-        display_df = similar_df[["유사도 순위", "Previous_Accident", "Equip_Cats"]].rename(columns={
-            "Previous_Accident": "사고 내용",
-            "Equip_Cats": "관련 장비 카테고리"
+        display_df = sim_df[[
+            "유사도 순위",
+            "corrected_text",
+            "equip",
+            "task",
+            "risk"
+        ]].rename(columns={
+            "corrected_text": "사고 내용",
+            "equip": "장비",
+            "task": "작업",
+            "risk": "위험도"
         })
     
-        # (5) 출력
         st.dataframe(display_df, use_container_width=True, hide_index=True)
