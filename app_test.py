@@ -5,6 +5,8 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import altair as alt
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # =========================
 # 1. 기본 설정
@@ -19,7 +21,7 @@ except Exception as e:
     st.error(f"유사도 데이터 로드 실패: {e}")
     st.stop()
 
-
+sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 
 st.set_page_config(page_title="사고 위험도 분석", layout="wide")
@@ -120,14 +122,12 @@ def get_slim_category(name):
         return '기타/미분류'
 
 
-from sklearn.metrics.pairwise import cosine_similarity
-
 def find_similar_cases(equip, task, location, weather):
 
     query = f"[장비: {equip}] [작업: {task}] [장소: {location}] [날씨: {weather}]"
 
     # 🔥 임시: sbert 없이 테스트용 → 첫 번째 벡터 사용
-    query_vec = sim_embeddings[0].reshape(1, -1)
+    query_vec = sbert_model.encode([query])
 
     sims = cosine_similarity(query_vec, sim_embeddings)[0]
 
