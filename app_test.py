@@ -414,7 +414,7 @@ elif st.session_state.mode == "db":
             "equip": "버스",
             "task": "주행(후진)",
             "location": "도로",
-            "time" : "야간,
+            "time" : "야간",
             "weather": "눈",
             "risk": "중간위험"
         }
