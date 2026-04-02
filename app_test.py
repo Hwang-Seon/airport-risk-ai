@@ -28,8 +28,8 @@ def go_home(): # 뒤로가기함수
 
 if st.session_state.mode is None:
 
-    st.markdown("# ✈️ ICN Safe-On-Air ✈️ \n")
-    st.markdown("###: 공항 지상조업 안전 AI 시스템 ")
+    st.markdown("# ✈️ ICN Safe-On-Air ✈️\n")
+    st.markdown("### 공항 지상조업 안전 AI 시스템")
     st.markdown("---")
     st.markdown("### 원하는 기능을 선택하세요\n")
 
