@@ -13,7 +13,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # 모드 설정
 # =========================
 
-st.set_page_config(page_title="ICN 산업재해 관리 시스템 Ⓒ 2026 순두부", layout="wide")
+st.set_page_config(page_title="ICN Safe-On-Air Ⓒ 2026 순두부", layout="wide")
 
 st.caption("Developed by Team 순두부 | Incheon Airport AI Project")
 st.markdown("---")
@@ -28,7 +28,9 @@ def go_home(): # 뒤로가기함수
 
 if st.session_state.mode is None:
 
-    st.markdown("# ✈️ 공항 지상조업 AI 시스템")
+    st.markdown("# ✈️ ICN Safe-On-Air ✈️ \n")
+    st.markdown("###: 공항 지상조업 안전 AI 시스템 ")
+    st.markdown("---")
     st.markdown("### 원하는 기능을 선택하세요\n")
 
     col1, col2 = st.columns(2)
