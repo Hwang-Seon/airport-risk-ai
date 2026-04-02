@@ -36,7 +36,7 @@ if st.session_state.mode is None:
     col1, col2 = st.columns(2)
 
     # -------------------------
-    # 카드 1: 위험도 분석
+    # 기능 1: 위험도 분석
     # -------------------------
     with col1:
         st.markdown("""
@@ -50,7 +50,7 @@ if st.session_state.mode is None:
             st.rerun()
 
     # -------------------------
-    # 카드 2: DB 추가
+    # 기능 2: DB 추가
     # -------------------------
     with col2:
         st.markdown("""
@@ -345,9 +345,9 @@ if st.session_state.mode == "analysis":
                 st.info(""" 
                 ℹ️ 위험도 기준
                 
-                - 🟢 낮은위험: 경미한 상황  
-                - 🟠 중간위험: 장비 손상 가능  
-                - 🔴 높은위험: 인명/항공기 위험  
+                - 🟢 낮은위험: 단순 접촉, 경미한 사고  
+                - 🟠 중간위험: 주요 장비/시설 손상, 항공기 근접 사고  
+                - 🔴 높은위험: 인명 피해, 항공기 직접 사고  
                 """)
             
         # -------------------------
@@ -396,15 +396,15 @@ elif st.session_state.mode == "db":
     st.markdown("## 📝 사고 데이터 등록")
 
     st.error("""
-    ⚠️ 데모 버전 안내 ⚠️
-    현재 시스템은 실제 LLM이 아닌 예시 데이터로 동작합니다.  
-    👉 입력창에 제공된 예시 문장으로만 정상 동작합니다.
-    👉 다른 문장을 입력할 경우 정확한 분석이 수행되지 않을 수 있습니다.
+    ⚠️ 데모 버전 안내 ⚠️₩n
+    현재 시스템은 실제 LLM이 아닌 예시 데이터로 동작합니다.₩n  
+    👉 입력창에 제공된 예시 문장으로만 정상 동작합니다.₩n
+    👉 다른 문장을 입력할 경우 정확한 분석이 수행되지 않을 수 있습니다.₩n
     """)
 
     accident_text = st.text_area(
         "사고 상황 입력",
-        value="폭설로 미끄러운 GES도로에서 램프버스가 후진 중 트럭과 충돌"
+        value="20시경, 폭설로 미끄러운 GES도로에서 램프버스가 후진 중 트럭과 충돌"
     )
 
     run_db = st.button("📥 DB 저장 실행")
@@ -412,19 +412,16 @@ elif st.session_state.mode == "db":
     def mock_llm(text):
         return {
             "equip": "버스",
-            "task": "후진",
+            "task": "주행(후진)",
             "location": "도로",
+            "time" : "야간,
             "weather": "눈",
-            "risk": 2
+            "risk": "중간위험"
         }
 
     if run_db:
 
         llm_result = mock_llm(accident_text)
-
-        kst = pytz.timezone("Asia/Seoul")
-        hour = datetime.now(kst).hour
-        time_value = "주간" if 6 <= hour < 18 else "야간"
 
         st.subheader("💡 LLM 기반 사고 구조 분류 결과")
 
@@ -434,7 +431,7 @@ elif st.session_state.mode == "db":
                 llm_result["equip"],
                 llm_result["task"],
                 llm_result["location"],
-                time_value,
+                llm_result["time"],
                 llm_result["weather"],
                 llm_result["risk"]
             ]
